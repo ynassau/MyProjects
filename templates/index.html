@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roast-Style Compliment Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 650px;
+      width: 100%;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .emoji-header {
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      color: #fff;
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.5);
+      text-align: center;
+      font-size: 0.95rem;
+      margin-bottom: 32px;
+    }
+
+    label {
+      display: block;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 20px;
+      outline: none;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    input:focus, textarea:focus {
+      border-color: #e94560;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #e94560, #c62a47);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(233, 69, 96, 0.4);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .results {
+      margin-top: 32px;
+      display: none;
+    }
+
+    .results.visible {
+      display: block;
+    }
+
+    .results-title {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .compliment-card {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 4px solid #e94560;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      color: #fff;
+      font-size: 1rem;
+      line-height: 1.6;
+      animation: slideIn 0.4s ease forwards;
+      opacity: 0;
+    }
+
+    .compliment-card:nth-child(2) { animation-delay: 0.1s; }
+    .compliment-card:nth-child(3) { animation-delay: 0.2s; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .compliment-number {
+      font-size: 0.75rem;
+      color: #e94560;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .error-msg {
+      background: rgba(233, 69, 96, 0.15);
+      border: 1px solid rgba(233, 69, 96, 0.4);
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: #ff8096;
+      font-size: 0.95rem;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="emoji-header">🔥</div>
+    <h1>Roast-o-Matic 3000</h1>
+    <p class="subtitle">Affectionate roast-style compliments for your favourite colleagues</p>
+
+    <label for="name">Colleague's Name</label>
+    <input
+      type="text"
+      id="name"
+      placeholder="e.g. Dor, Sarah, Ahmed..."
+      maxlength="60"
+    />
+
+    <label for="traits">Their Quirks & Traits <span style="color:rgba(255,255,255,0.3);font-weight:400">(optional)</span></label>
+    <textarea
+      id="traits"
+      placeholder="e.g. always late to stand-up, drinks 6 coffees a day, asks 'quick questions' that take 45 minutes..."
+    ></textarea>
+
+    <button id="generate-btn" onclick="generate()">
+      Generate Roast Compliments
+    </button>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="results" id="results">
+      <div class="results-title" id="results-title"></div>
+      <div id="compliments-container"></div>
+    </div>
+  </div>
+
+  <script>
+    async function generate() {
+      const name = document.getElementById('name').value.trim();
+      const traits = document.getElementById('traits').value.trim();
+      const btn = document.getElementById('generate-btn');
+      const errorMsg = document.getElementById('error-msg');
+      const results = document.getElementById('results');
+
+      errorMsg.classList.remove('visible');
+      results.classList.remove('visible');
+
+      if (!name) {
+        showError("Please enter your colleague's name first!");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner"></span>Cooking up some roasts...';
+
+      try {
+        const response = await fetch('/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, traits }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showError(data.error || 'Something went wrong. Try again!');
+          return;
+        }
+
+        displayResults(data.name, data.compliments);
+
+      } catch (err) {
+        showError('Network error. Is the server running?');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Generate Roast Compliments';
+      }
+    }
+
+    function displayResults(name, compliments) {
+      const container = document.getElementById('compliments-container');
+      const title = document.getElementById('results-title');
+      const results = document.getElementById('results');
+
+      title.textContent = `Here's the roast for ${name} 🎤`;
+      container.innerHTML = '';
+
+      compliments.forEach((text, i) => {
+        const card = document.createElement('div');
+        card.className = 'compliment-card';
+        card.innerHTML = `
+          <div class="compliment-number">Roast #${i + 1}</div>
+          <div>${text}</div>
+        `;
+        container.appendChild(card);
+      });
+
+      results.classList.add('visible');
+    }
+
+    function showError(msg) {
+      const errorMsg = document.getElementById('error-msg');
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('visible');
+    }
+
+    document.getElementById('name').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') generate();
+    });
+  </script>
+</body>
+</html>
